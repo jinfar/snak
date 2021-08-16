@@ -8,10 +8,13 @@ use macroquad::prelude::{
     clear_background,
     YELLOW,
     BLUE,
+    GREEN,
     rand,
     draw_circle,
     next_frame,
     get_char_pressed,
+    is_mouse_button_pressed,
+    mouse_position,
 };
 // use macroquad::*;
 
@@ -25,12 +28,26 @@ fn greate_tail(golova: Vec2, kolvo: u8) -> Vec<Vec2> {
     } 
     tail
 }
+struct Food{
+    pos: Vec2,
+}
 
+impl Food{
+    fn new() -> Self{
+        Self{
+            pos:Vec2::new(rand::gen_range(10., screen_width()-10.0), 
+                            rand::gen_range(10., screen_height()-10.0))
+        }
+    }
+    fn render(&self) {
+        draw_circle(self.pos.x, self.pos.y, 8.0, GREEN)
+    }
+}
 
 struct Zmeya{
     head: Vec2,
     tail: Vec<Vec2>,
-    direction: char,
+    direction: Vec2,
 }
 impl Zmeya {
     fn new() -> Self{
@@ -39,11 +56,11 @@ impl Zmeya {
         Self{
             head: temp.clone(), 
             tail: greate_tail(temp, 4),  
-            direction: 'r',
+            direction: Vec2::new(1.0,0.0),
         }
     }
     fn render(&self) {
-        draw_circle(self.head.x, self.head.y, 7.0, YELLOW);
+        draw_circle(self.head.x, self.head.y, 8.0, YELLOW);
         for item in &self.tail{
             draw_circle(item.x, item.y, 5.0 ,YELLOW);
         }
@@ -55,63 +72,38 @@ impl Zmeya {
             self.tail[i] = temp.clone();
             temp = temp2;
         }
-        match self.direction{
-            'r' => self.head.x += 10.0,
-            'l' => self.head.x += -10.0,
-            'u' => self.head.y += 10.0,
-            'd' => self.head.y += -10.0,
-            _ => print!("Oshibka vvoda"),
-        }
+        self.head += self.direction;
+        self.head += self.direction;
+        self.head += self.direction;
+        self.head += self.direction;
+        self.head += self.direction;
+        if self.head.x > screen_width(){ self.head.x -= screen_width() }
+        if self.head.x < screen_width(){ self.head.x += screen_width() }
+        if self.head.y > screen_height(){ self.head.y -= screen_height() }
+        if self.head.y < screen_height(){ self.head.y += screen_height() }
     }
-    fn change_dir(&mut self, dir: Option<char>){
-        
-        if dir.unwrap_or('x') == 'd' && self.direction != 'l'{
-            self.direction = 'r'
-        }
-        if dir.unwrap_or('x') == 'w' && self.direction != 'd'{
-            self.direction = 'u'
-        }
-        if dir.unwrap_or('x')  == 's' && self.direction != 'u'{
-            self.direction = 'd'
-        }
-        if dir.unwrap_or('x') == 'a' && self.direction != 'r'{
-            self.direction = 'l'
-        } 
-        // dbg!(self.direction);
-        // dbg!(dir);
-
+    fn change_dir(&mut self, dir: (f32, f32)){
+        let temp = Vec2::new(dir.0, dir.1) - self.head;
+        self.direction = temp.normalize();
     }
-    fn change_dir2(&mut self, dir: char){
-        
-        if dir == 'd' && self.direction != 'l'{
-            self.direction = 'r'
-        }
-        if dir == 'w' && self.direction != 'd'{
-            self.direction = 'u'
-        }
-        if dir == 's' && self.direction != 'u'{
-            self.direction = 'd'
-        }
-        if dir == 'a' && self.direction != 'r'{
-            self.direction = 'l'
-        } 
-        // dbg!(self.direction);
-        // dbg!(dir);
-
-    }
-
 }
 
 #[macroquad::main("STAS")]
 async fn main() {
     let mut zm = Zmeya::new();
+    let mut food = Food::new();
     loop{
         clear_background(BLUE);
         zm.render();
+        food.render();
         zm.move_snake();
-        while let Some(c) = get_char_pressed() {
-            dbg!(c);
-            zm.change_dir2(c);
+        let dis = zm.head.clone() - food.pos.clone();
+        if dis.length() < 16.0{
+            food = Food::new();
+            zm.tail.push(Vec2::new(0.0,0.0));
+        }
+        if is_mouse_button_pressed(macroquad::prelude::MouseButton::Left){
+            zm.change_dir(mouse_position())
         }
         next_frame().await;
     }
