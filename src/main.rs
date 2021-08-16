@@ -71,7 +71,7 @@ impl Zmeya {
     fn move_snake(&mut self) {
         let mut temp = self.head.clone();
         for i in 0..self.tail.len(){
-            let mut temp2 = self.tail[i].clone();
+            let temp2 = self.tail[i].clone();
             self.tail[i] = temp.clone();
             temp = temp2;
         }
