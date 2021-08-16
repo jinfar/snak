@@ -68,7 +68,7 @@ impl Zmeya {
     fn move_snake(&mut self) {
         let mut temp = self.head.clone();
         for i in 0..self.tail.len(){
-            let mut temp2 = self.tail[i].clone();
+            let temp2 = self.tail[i].clone();
             self.tail[i] = temp.clone();
             temp = temp2;
         }
@@ -78,9 +78,9 @@ impl Zmeya {
         self.head += self.direction;
         self.head += self.direction;
         if self.head.x > screen_width(){ self.head.x -= screen_width() }
-        if self.head.x < screen_width(){ self.head.x += screen_width() }
+        if self.head.x < 0.0{ self.head.x += screen_width() }
         if self.head.y > screen_height(){ self.head.y -= screen_height() }
-        if self.head.y < screen_height(){ self.head.y += screen_height() }
+        if self.head.y < 0.0{ self.head.y += screen_height() }
     }
     fn change_dir(&mut self, dir: (f32, f32)){
         let temp = Vec2::new(dir.0, dir.1) - self.head;
